@@ -28,6 +28,19 @@ async function run() {
     const db = client.db("book_db");
     const booksCollection = db.collection("books");
 
+    app.get("/books", async (req, res) => {
+      const cursor = booksCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/books/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await booksCollection.findOne(query);
+      res.send(result);
+    });
+
     app.post("/books", async (req, res) => {
       const newBook = req.body;
       const result = await booksCollection.insertOne(newBook);
@@ -44,6 +57,8 @@ async function run() {
           author: updatedBook.author,
         },
       };
+      const result = await booksCollection.updateOne(query, update);
+      res.send(result);
     });
 
     app.delete("/books/:id", async (req, res) => {
