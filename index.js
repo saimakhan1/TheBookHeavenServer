@@ -27,7 +27,24 @@ async function run() {
     //skm
     const db = client.db("book_db");
     const booksCollection = db.collection("books");
+    const usersCollection = db.collection("users");
 
+    //users API
+    app.post("/users", async (req, res) => {
+      const newUser = req.body;
+      const email = req.body.email;
+      const query = { email: email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        res.send({
+          message: "user already exists. do not need to insert again ",
+        });
+      } else {
+        const result = await usersCollection.insertOne(newUser);
+        res.send(result);
+      }
+    });
+    //books Api
     app.get("/books", async (req, res) => {
       const cursor = booksCollection.find().sort({ rating: -1 }).limit(6);
       const result = await cursor.toArray();
