@@ -29,7 +29,7 @@ async function run() {
     const booksCollection = db.collection("books");
 
     app.get("/books", async (req, res) => {
-      const cursor = booksCollection.find();
+      const cursor = booksCollection.find().sort({ rating: -1 }).limit(6);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -65,6 +65,14 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await booksCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //all-books related API
+
+    app.get("/all-books", async (req, res) => {
+      const cursor = booksCollection.find().sort({ rating: -1 });
+      const result = await cursor.toArray();
       res.send(result);
     });
 
