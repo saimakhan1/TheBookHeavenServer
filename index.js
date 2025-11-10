@@ -46,16 +46,19 @@ async function run() {
     });
     //books Api
     app.get("/books", async (req, res) => {
-      const cursor = booksCollection.find().sort({ rating: -1 }).limit(6);
+      const cursor = booksCollection.find().sort({ rating: -1 });
       const result = await cursor.toArray();
       res.send(result);
     });
 
-    app.get("/popular-books", async (req, res) => {
-      const cursor = booksCollection.find().sort({ rating: -1 }).limit(6);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+    
+
+
+    // app.get("/popular-books", async (req, res) => {
+    //   const cursor = booksCollection.find().sort({ rating: -1 }).limit(6);
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
 
     app.get("/books/:id", async (req, res) => {
       const id = req.params.id;
@@ -64,11 +67,67 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/books", async (req, res) => {
-      const newBook = req.body;
-      const result = await booksCollection.insertOne(newBook);
-      res.send(result);
-    });
+  //   app.post("/books", async (req, res) => {
+  //     const newBook = req.body;
+  //     const result = await booksCollection.insertOne(newBook);
+  //     if (!newBook.dateAdded) {
+  //   newBook.dateAdded = new Date().toISOString();
+  // } else if (new Date(newBook.dateAdded).toString() === "Invalid Date") {
+  //   newBook.dateAdded = new Date().toISOString();
+  // } else {
+  //   newBook.dateAdded = new Date(newBook.dateAdded).toISOString();
+  // }
+  //     res.send(result);
+  //   });
+
+//   app.post("/books", async (req, res) => {
+//   const newBook = req.body;
+//   const result = await booksCollection.insertOne(newBook);  // ❌ inserted too early
+
+//   if (!newBook.dateAdded) {
+//     newBook.dateAdded = new Date().toISOString();
+//   } else if (new Date(newBook.dateAdded).toString() === "Invalid Date") {
+//     newBook.dateAdded = new Date().toISOString();
+//   } else {
+//     newBook.dateAdded = new Date(newBook.dateAdded).toISOString();
+//   }
+
+//   res.send(result);
+// });
+
+//from chatgpt
+app.post("/books", async (req, res) => {
+  const { title, author, genre, rating, summary, coverImage, userEmail, userName, dateAdded } = req.body;
+
+  let finalDate = dateAdded;
+  if (!finalDate || new Date(finalDate).toString() === "Invalid Date") {
+    finalDate = new Date().toISOString();
+  } else {
+    finalDate = new Date(finalDate).toISOString();
+  }
+
+  const newBook = {
+    title,
+    author,
+    genre,
+    rating,
+    summary,
+    coverImage,
+    userEmail: userEmail || "Unknown",
+    userName: userName || "Unknown",
+    dateAdded: finalDate,
+  };
+
+  // 👇 Add these two lines
+  // console.log("✅ Received book data from frontend:", req.body);
+  // console.log("✅ Book object saved to DB:", newBook);
+
+  const result = await booksCollection.insertOne(newBook);
+  res.send(result);
+});
+
+
+
 
     app.patch("/books/:id", async (req, res) => {
       const id = req.params.id;
