@@ -28,6 +28,8 @@ async function run() {
     const db = client.db("book_db");
     const booksCollection = db.collection("books");
     const usersCollection = db.collection("users");
+    const commentsCollection=db.collection("comments");
+    const myBooksCollection=db.collection("myBooks");
 
     //users API
     app.post("/users", async (req, res) => {
@@ -51,15 +53,6 @@ async function run() {
       res.send(result);
     });
 
-    
-
-
-    // app.get("/popular-books", async (req, res) => {
-    //   const cursor = booksCollection.find().sort({ rating: -1 }).limit(6);
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
-
     app.get("/books/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -67,33 +60,12 @@ async function run() {
       res.send(result);
     });
 
-  //   app.post("/books", async (req, res) => {
-  //     const newBook = req.body;
-  //     const result = await booksCollection.insertOne(newBook);
-  //     if (!newBook.dateAdded) {
-  //   newBook.dateAdded = new Date().toISOString();
-  // } else if (new Date(newBook.dateAdded).toString() === "Invalid Date") {
-  //   newBook.dateAdded = new Date().toISOString();
-  // } else {
-  //   newBook.dateAdded = new Date(newBook.dateAdded).toISOString();
-  // }
-  //     res.send(result);
-  //   });
-
-//   app.post("/books", async (req, res) => {
-//   const newBook = req.body;
-//   const result = await booksCollection.insertOne(newBook);  // ❌ inserted too early
-
-//   if (!newBook.dateAdded) {
-//     newBook.dateAdded = new Date().toISOString();
-//   } else if (new Date(newBook.dateAdded).toString() === "Invalid Date") {
-//     newBook.dateAdded = new Date().toISOString();
-//   } else {
-//     newBook.dateAdded = new Date(newBook.dateAdded).toISOString();
-//   }
-
-//   res.send(result);
-// });
+ app.delete('/books/:id',async(req,res)=>{
+   const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await booksCollection.deleteOne(query);
+  res.send(result)
+ })
 
 //from chatgpt
 app.post("/books", async (req, res) => {
@@ -129,19 +101,51 @@ app.post("/books", async (req, res) => {
 
 
 
-    app.patch("/books/:id", async (req, res) => {
-      const id = req.params.id;
-      const updatedBook = req.body;
-      const query = { _id: new ObjectId(id) };
-      const update = {
-        $set: {
-          title: updatedBook.title,
-          author: updatedBook.author,
-        },
-      };
-      const result = await booksCollection.updateOne(query, update);
-      res.send(result);
-    });
+    // app.patch("/books/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const updatedBook = req.body;
+    //   const query = { _id: new ObjectId(id) };
+    //   const update = {
+    //     $set: {
+    //       title: updatedBook.title,
+    //       author: updatedBook.author,
+    //     },
+    //   };
+    //   const result = await booksCollection.updateOne(query, update);
+    //   res.send(result);
+    // });
+
+    // ✅ Update Book by ID
+app.patch("/books/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updatedBook = req.body;
+    const query = { _id: new ObjectId(id) };
+
+    const updateDoc = {
+      $set: {
+        title: updatedBook.title,
+        author: updatedBook.author,
+        genre: updatedBook.genre,
+        rating: updatedBook.rating,
+        summary: updatedBook.summary,
+        coverImage: updatedBook.coverImage,
+        dateAdded: updatedBook.dateAdded || new Date().toISOString(),
+      },
+    };
+
+    const result = await booksCollection.updateOne(query, updateDoc);
+    if (result.modifiedCount > 0) {
+      res.send({ success: true, message: "Book updated successfully!" });
+    } else {
+      res.status(404).send({ success: false, message: "Book not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: "Error updating book" });
+  }
+});
+
 
     app.delete("/books/:id", async (req, res) => {
       const id = req.params.id;
@@ -164,6 +168,42 @@ app.post("/books", async (req, res) => {
   const result = await booksCollection.findOne(query);
   res.send(result);
 });
+
+//comments API
+// Add a comment
+app.post("/comments", async (req, res) => {
+  try {
+    const comment = req.body; // { bookId, userName, userPhoto, comment, createdAt }
+    if (!comment.bookId || !comment.comment) {
+      return res.status(400).json({ error: "Missing bookId or comment" });
+    }
+
+    const result = await commentsCollection.insertOne(comment);
+    res.status(201).json({ message: "Comment added!", commentId: result.insertedId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to add comment" });
+  }
+});
+
+// Get comments for a book
+app.get("/comments", async (req, res) => {
+  try {
+    const { bookId } = req.query;
+    if (!bookId) return res.status(400).json({ error: "Missing bookId" });
+
+    const comments = await commentsCollection
+      .find({ bookId })
+      .sort({ createdAt: 1 }) // oldest first
+      .toArray();
+
+    res.json(comments);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch comments" });
+  }
+});
+
 
 
     // Send a ping to confirm a successful connection
