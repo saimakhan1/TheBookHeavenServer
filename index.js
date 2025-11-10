@@ -51,6 +51,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/popular-books", async (req, res) => {
+      const cursor = booksCollection.find().sort({ rating: -1 }).limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.get("/books/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -92,6 +98,14 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    app.get("/all-books/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await booksCollection.findOne(query);
+  res.send(result);
+});
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
