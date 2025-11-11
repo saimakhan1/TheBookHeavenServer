@@ -67,7 +67,7 @@ async function run() {
   res.send(result)
  })
 
-//from chatgpt
+//
 app.post("/books", async (req, res) => {
   const { title, author, genre, rating, summary, coverImage, userEmail, userName, dateAdded } = req.body;
 
@@ -89,10 +89,6 @@ app.post("/books", async (req, res) => {
     userName: userName || "Unknown",
     dateAdded: finalDate,
   };
-
-  // 👇 Add these two lines
-  // console.log("✅ Received book data from frontend:", req.body);
-  // console.log("✅ Book object saved to DB:", newBook);
 
   const result = await booksCollection.insertOne(newBook);
   res.send(result);
@@ -201,8 +197,8 @@ app.get("/reviews", async (req, res) => {
   const reviews = await reviewsCollection.find({ bookId }).toArray();
   res.send(reviews);
 });
-//top rated books
-// ✅ Get Top 3 Books by Highest Ratings
+
+// Get Top 3 Books by Highest Ratings
 app.get("/top-books", async (req, res) => {
   try {
     const topBooks = await booksCollection
