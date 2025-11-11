@@ -98,23 +98,6 @@ app.post("/books", async (req, res) => {
   res.send(result);
 });
 
-
-
-
-    // app.patch("/books/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const updatedBook = req.body;
-    //   const query = { _id: new ObjectId(id) };
-    //   const update = {
-    //     $set: {
-    //       title: updatedBook.title,
-    //       author: updatedBook.author,
-    //     },
-    //   };
-    //   const result = await booksCollection.updateOne(query, update);
-    //   res.send(result);
-    // });
-
     //  Update Book by ID
 app.patch("/books/:id", async (req, res) => {
   try {
