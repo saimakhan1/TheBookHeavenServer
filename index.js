@@ -29,7 +29,7 @@ async function run() {
     const booksCollection = db.collection("books");
     const usersCollection = db.collection("users");
     const commentsCollection=db.collection("comments");
-    const myBooksCollection=db.collection("myBooks");
+   const reviewsCollection=db.collection("reviews")
 
     //users API
     app.post("/users", async (req, res) => {
@@ -203,6 +203,39 @@ app.get("/comments", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch comments" });
   }
 });
+
+//review related API
+// POST a review
+app.post("/reviews", async (req, res) => {
+  const review = req.body;
+  const result = await reviewsCollection.insertOne(review);
+  res.send(result);
+});
+
+// GET reviews by bookId
+app.get("/reviews", async (req, res) => {
+  const { bookId } = req.query;
+  const reviews = await reviewsCollection.find({ bookId }).toArray();
+  res.send(reviews);
+});
+//top rated books
+// ✅ Get Top 3 Books by Highest Ratings
+app.get("/top-books", async (req, res) => {
+  try {
+    const topBooks = await booksCollection
+      .aggregate([
+        { $addFields: { ratingValue: { $toDouble: "$rating" } } }, // ensure rating is numeric
+        { $sort: { ratingValue: -1 } }, // sort descending by rating
+        { $limit: 3 }, // top 3
+      ])
+      .toArray();
+    res.send(topBooks);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Failed to fetch top books" });
+  }
+});
+
 
 
 
