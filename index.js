@@ -22,10 +22,7 @@ const client = new MongoClient(uri, {
 });
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    //await client.connect();
-
-    //skm
+   
     const db = client.db("book_db");
     const booksCollection = db.collection("books");
     const usersCollection = db.collection("users");
@@ -215,9 +212,6 @@ app.get("/top-books", async (req, res) => {
     res.status(500).send({ message: "Failed to fetch top books" });
   }
 });
-
-
-
 
     // Send a ping to confirm a successful connection
    // await client.db("admin").command({ ping: 1 });
